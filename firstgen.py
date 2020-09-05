@@ -109,10 +109,10 @@ class App:
     def draw(self):
         self.screen.fill(GRAY)
         space.debug_draw(self.draw_options)
-
+        # Texto:
         font = pygame.font.SysFont("comicsans", 50)
         img = font.render(f"Seconds: {int(self.seconds)}", True, RED)
-        self.screen.blit(img, (350,20))
+        self.screen.blit(img, (800,20))
         prev_seconds = self.seconds
         self.seconds = ((time.time() - self.startTime))
         for x in self.springs:
@@ -169,17 +169,24 @@ class Box:
             segment.friction = 1
             space.add(segment)
 
+class Floor:
+    def __init__(self, p0=(-200, 0), p1=(w+200,), d=10):
+        segment = pymunk.Segment(b0, p0 , p1, d)
+        segment.elasticity = 0.5
+        segment.friction = 1
+        space.add(segment)
+
 def sampleInit():
     # Defino cantidad de Nodes
     nodes = 2+random.randint(1,5)
     nodesList =[]
     for _ in range(nodes):
-        nodesList.append(Circle((200+random.randint(0,50), 100+random.randint(0,50)),color =(255,0,255), friction = 10*random.random(),mass=random.randint(0,100),radius=random.randint(10, 30)))
+        nodesList.append(Circle((900+random.randint(0,50), 100+random.randint(0,50)),color =(255,0,255), friction = 10*random.random(),mass=random.randint(0,100),radius=random.randint(10, 30)))
     springs = random.randint((nodes)-1,sum(range(nodes)))
     springsList =[]
     springCombination =[]
-    for x in list(range(nodes)):
-        for y in list(range(nodes)):
+    for x in range(nodes):
+        for y in range(nodes):
             springCombination.append((x,y))
     springCombinationClean = []
     for i in [list(set(x)) for x in springCombination if  x != x[::-1]]:
@@ -194,10 +201,9 @@ def sampleInit():
     return springsList
 
 if __name__ == '__main__':
-    Box()
+    Floor()
     
     springsList = sampleInit()
-    sampleInit()
 
-    
+    print(space._constraints)
     App(size,springsList).run()
