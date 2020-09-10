@@ -7,8 +7,8 @@ from pygame.locals import *
 import time
 import math
 import random
-from PIL import Image
 import random
+
 from itertools import combinations
 import statistics
 
@@ -42,6 +42,7 @@ class App:
 
     def run(self):
         Box(self.space)
+        subject1 = None
         subject1 = subject(self.space)
         subject1.create()
         while self.running:
@@ -68,7 +69,7 @@ class App:
                 v = Vec2d(keys[event.key]) 
                 if self.active_shape != None:
                         v.normalized()
-                        self.active_shape.body.apply_impulse_at_world_point(v*5000,point=self.active_shape.body.position)     
+                        self.active_shape.body.apply_impulse_at_world_point(v*50000,point=self.active_shape.body.position)     
 
             if event.key == K_h:
                 if self.gravity:
@@ -126,14 +127,15 @@ class App:
         self.screen.blit(img, (800,20))
         prev_seconds = self.seconds
         self.seconds = ((time.time() - self.startTime))
-        # Its Alive
+        # Start Position
         pygame.draw.lines(self.screen ,RED ,  False,(Vec2d(subject.positionStart,0) ,Vec2d(subject.positionStart,900)) , 5)
         springs = subject.springList
-        for x in springs:
-            if prev_seconds!= self.seconds:
-                x.spring.joint.rest_length += 1*math.sin(2*prev_seconds) 
-        print(x.spring.joint.rest_length)
+        if self.seconds>5:
+            for x in springs:
+                x.spring.joint.rest_length += 5*math.sin(prev_seconds) 
+        # print(x.spring.joint.rest_length)
         subject.fit()
+        # Actual Position
         pygame.draw.lines(self.screen ,GREEN ,  False,(Vec2d(subject.positionEnd,0) ,Vec2d(subject.positionEnd,900)) , 5)
 
         pygame.display.update()
@@ -151,28 +153,31 @@ class SimpleMotor:
         space.add(self.joint)
 
 class SpringJoint:
-    def __init__(self, b1, b2, space, a1 = (0, 0), a2 =(0, 0), length = 100,stif =100,damp=10,grooved=0 ):
+    def __init__(self, b1, b2, space, a1 = (0, 0), a2 =(0, 0), length = 100,stif =100,damp=0,grooved=0 ):
         self.joint = pymunk.constraint.DampedSpring(b1, b2, a1, a2, length, stif, damp)
+        self.joint.collide_bodies = False
         space.add(self.joint)
 
 class GrooveJoint:
     def __init__(self, b1, b2, space , a1 =(0,0), a2 =(0,0), anchor_b= (0,0)):
         self.joint = pymunk.constraint.GrooveJoint(b1, b2, a1, a2, anchor_b)
-        self.joint.collide_bodies = True
+        self.joint.collide_bodies = False
         space.add(self.joint)
 
 class TSpringJoint:
-    def __init__(self, b1, b2, space, a1 = Vec2d(0, 0), a2 =Vec2d(0, 0), length = 100,stif =100,damp=1000,max_length=1.5,grooved =True ):
+    def __init__(self, b1, b2, space, a1 = Vec2d(0, 0), a2 =Vec2d(0, 0), length = 100,stif =100,damp=1000,max_length=2, min_length = 0.5,grooved =True ):
         
         if grooved:
-            groovedWich = 3
+            groovedWich = random.randint(1,2)
+            # groovedWich = 1
+
             if groovedWich==1:
-                self.groove1 = GrooveJoint(b1, b2, space,a1=a1,a2=max_length*length*(b2.position - b1.position).normalized(),anchor_b=(0,0))
+                self.groove1 = GrooveJoint(b1, b2, space, a1=length*max_length*(b2.position- b1.position).normalized(), a2=length*min_length*(b2.position - b1.position).normalized(),anchor_b=(0,0))
             if groovedWich==2:
-                self.groove2 = GrooveJoint(b2, b1, space,a2=a2,a1=max_length*length*(b1.position- b2.position).normalized(),anchor_b=(0,0))
+                self.groove2 = GrooveJoint(b2, b1, space, a2=length*max_length*(b1.position- b2.position).normalized(), a1=length*min_length*(b1.position- b2.position).normalized(),anchor_b=(0,0))
             if groovedWich==3:
-                self.groove2 = GrooveJoint(b2, b1, space,a2=a2,a1=max_length*length*(b1.position- b2.position).normalized(),anchor_b=(0,0))
-                self.groove1 = GrooveJoint(b1, b2, space,a1=a1,a2=max_length*length*(b2.position - b1.position).normalized(),anchor_b=(0,0))
+                self.groove2 = GrooveJoint(b2, b1, space, a2=length*max_length*(b1.position- b2.position).normalized(), a1=length*min_length*(b1.position- b2.position).normalized(),anchor_b=(0,0))
+                self.groove1 = GrooveJoint(b1, b2, space, a1=length*max_length*(b2.position- b1.position).normalized(), a2=length*min_length*(b2.position - b1.position).normalized(),anchor_b=(0,0))
         self.spring = SpringJoint(b1,b2, space,length=length)
 
 
@@ -180,7 +185,7 @@ class TSpringJoint:
 
 class Circle:
     id = 0
-    def __init__(self, pos, space , radius=30,color=GRAY,friction=0.5,mass=1):
+    def __init__(self, pos, space , radius=30,color=GREEN,friction=0.5,mass=0.01):
         self.id = (Circle.id + 1)
         self.body = pymunk.Body(mass=mass)
         self.body.position = pos
@@ -206,7 +211,7 @@ class Floor:
     def __init__(self, space , p0=(-200, 0), p1=(w+200,), d=10):
         segment = pymunk.Segment(space.static_body, p0 , p1, d)
         segment.elasticity = 0.5
-        segment.friction = 0.5
+        segment.friction = 0.9
         space.add(segment)
 
 class subject:
@@ -223,8 +228,9 @@ class subject:
         nodesList =[]
         for _ in range(self.nodes):
             nodesList.append(Circle((500+random.randint(0,400), 100+random.randint(0,400)),
-            color =(200,100,255), friction = 100*random.random(),
-            radius=random.randint(20, 30),
+            color =(200,100,255), 
+            friction = random.random(),
+            radius=random.randint(15, 50),
             space = self.space ))
         springsList =[]
         springsCombination=[i for i in combinations(list(range(self.nodes)),2)]
@@ -234,9 +240,11 @@ class subject:
             n1 = springsCombination[s1][0]
             n2 = springsCombination[s1][1]
             springsList.append(TSpringJoint( nodesList[n1].body, nodesList[n2].body,  
-            length = 200+random.randint(0,100),
-            stif = 100+random.randint(0,100),
+            length = 200+random.randint(0,0),
+            stif = 10000+random.randint(0,100),
+            damp= 10000,
             space = self.space ,
+
             grooved=1))
             springsCombination.remove(springsCombination[s1])
         self.nodesList = nodesList
@@ -251,6 +259,18 @@ class subject:
 
 
 if __name__ == '__main__':
-    
+
     app = App(size)
+
+    space = app.space
+    # a1 = Vec2d(200,100)
+    # a2 =Vec2d(500,100)
+    # b1 = Circle(pos = a1, space = space,radius=30)
+    # b2 = Circle(pos = a2, space = space,radius=30)
+    # print((b2.body.position - b1.body.position))
+    # GrooveJoint(b1.body, b2.body, space,a1=1.5*(b2.body.position- b1.body.position),a2=0.5*(b2.body.position- b1.body.position),anchor_b=(0,0))
+    # GrooveJoint(b2.body, b1.body, space,a2=1.5*(b1.body.position- b2.body.position),a1=0.5*(b1.body.position- b2.body.position),anchor_b=(0,0))
+
+
+    
     app.run()
