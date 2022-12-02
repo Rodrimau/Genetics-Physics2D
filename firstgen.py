@@ -124,11 +124,11 @@ class App:
         # Texto:
         font = pygame.font.SysFont("comicsans", 50)
         img = font.render(f"Seconds: {int(self.seconds)}", True, RED)
-        self.screen.blit(img, (800,20))
+        self.screen.blit(img, (800, 20))
         prev_seconds = self.seconds
         self.seconds = ((time.time() - self.startTime))
         # Start Position
-        pygame.draw.lines(self.screen ,RED ,  False,(Vec2d(subject.positionStart,0) ,Vec2d(subject.positionStart,900)) , 5)
+        pygame.draw.lines(self.screen, RED, False, (Vec2d(subject.positionStart,0) ,Vec2d(subject.positionStart,900)) , 5)
         springs = subject.springList
         if self.seconds>5:
             for x in springs:

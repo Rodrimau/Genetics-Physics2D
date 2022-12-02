@@ -1,8 +1,5 @@
 itertools
 pymunk
-import math
 pygame
-time
-math
 random
 statistics
