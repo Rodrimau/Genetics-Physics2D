@@ -1,5 +1,0 @@
-itertools
-pymunk
-pygame
-random
-statistics
