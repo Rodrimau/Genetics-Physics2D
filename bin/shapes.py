@@ -36,7 +36,7 @@ class Triangle:
 
     def __init__(self, pos, space, color=GREEN, friction=0.5, mass=1):
         self.id = (Triangle.id + 1)
-        self.body = pymunk.Body(mass=mass)
+        self.body = pymunk.Body(mass=mass, body_type=pymunk.Body.KINEMATIC)
         self.body.position = pos
         self.body.angle = 0
         self.shape = pymunk.Poly(self.body, vertices=[(25, 10), (-25, 10), (0, -25)])

@@ -4,15 +4,12 @@ version = "0.1.0"
 description = ""
 authors = ["Rodrigo Maurino"]
 readme = "README.md"
-packages = [{include = "genetics_physics2d"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 pymunk = "^6.4.0"
 pygame = "^2.1.2"
 python-dotenv = "^0.21.0"
-
-
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.0.0"

@@ -40,18 +40,16 @@ class App:
 
     def run(self):
         Box(self.space)
-        subject1 = SubjectTriangle(self.space)
-        subject1.create()
+        # subject1 = SubjectTriangle(self.space)
+        # subject1.create()
         while self.running:
             for event in pygame.event.get():
                 self.do_event(event)
-                for shap in self.space.shapes:
-                    if isinstance(shap, pymunk.shapes.Circle):
-                        shap.body._set_angle = 0
+
 
             dt = self.clock.tick(self.fps)
             self.space.step(dt / 60)
-            subject1.draw(self.screen, self.seconds)
+            #subject1.draw(self.screen, self.seconds)
             self.draw()
         print("QUIT")
         pygame.quit()
@@ -128,7 +126,8 @@ class App:
                         self.selected_shapes = []
 
         elif event.type == locals.MOUSEMOTION:
-            self.p = event.pos
+            print(event)
+            self.pos = event.pos
 
         elif event.type == locals.MOUSEBUTTONUP:
             if self.pulling:
